@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ku">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>R6 TRACKER</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --r6-yellow: #ffb400; --bg: #0a0a0a; --card: #151515; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
+        
+        .page { height: 100vh; width: 100vw; display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; transition: 0.5s ease; }
+        .hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
+
+        /* پەیجی یەکەم: ناونووسین */
+        .login-card { width: 85%; max-width: 350px; text-align: center; }
+        .u-logo { font-size: 60px; color: var(--r6-yellow); margin-bottom: 20px; }
+        input { width: 100%; padding: 18px; background: var(--card); border: 2px solid #333; border-radius: 12px; color: white; font-size: 18px; text-align: center; box-sizing: border-box; }
+        input:focus { border-color: var(--r6-yellow); outline: none; }
+        .btn-sync { width: 100%; padding: 18px; background: var(--r6-yellow); color: black; border: none; border-radius: 12px; font-weight: bold; font-size: 18px; margin-top: 20px; cursor: pointer; }
+
+        /* پەیجی دووەم: ستاتسەکان (چاوەڕواننەکراو) */
+        .stats-container { width: 90%; max-width: 380px; }
+        .stat-box { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; border-left: 5px solid var(--r6-yellow); }
+        .label { color: #888; text-transform: uppercase; font-size: 12px; }
+        .value { color: var(--r6-yellow); font-weight: bold; font-size: 20px; }
+    </style>
+</head>
+<body>
+
+    <div id="page-input" class="page">
+        <div class="login-card">
+            <div class="u-logo"><i class="fab fa-ubisoft"></i></div>
+            <h2 style="letter-spacing: 2px;">UBISOFT CONNECT</h2>
+            <p style="color: #666; font-size: 14px;">ناوی یاریزان (Ubisoft ID) بنووسە</p>
+            <input type="text" id="username" placeholder="OPERATOR NAME..." autocomplete="off">
+            <button class="btn-sync" onclick="getStats()">SYNC OPERATOR</button>
+        </div>
+    </div>
+
+    <div id="page-stats" class="page hidden">
+        <div class="stats-container">
+            <h2 id="disp-name" style="text-align: center; color: var(--r6-yellow);">-</h2>
+            <div class="stat-box"><div><span class="label">Clearance Level</span><br><span class="value" id="val-lvl">0</span></div><i class="fas fa-medal"></i></div>
+            <div class="stat-box"><div><span class="label">K/D Ratio</span><br><span class="value" id="val-kd">0.00</span></div><i class="fas fa-crosshairs"></i></div>
+            <div class="stat-box"><div><span class="label">Win Rate</span><br><span class="value" id="val-wr">0%</span></div><i class="fas fa-trophy"></i></div>
+            <div class="stat-box"><div><span class="label">Current Rank</span><br><span class="value" id="val-rank">-</span></div><i class="fas fa-star"></i></div>
+            <button class="btn-sync" style="background: transparent; border: 1px solid white; color: white;" onclick="location.reload()">BACK</button>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        async function getStats() {
+            const user = document.getElementById('username').value;
+            if(!user) return;
+
+            try {
+                // ناردنی داتا بۆ سێرڤەرەکەت
+                const res = await fetch(`http://217.154.212.66:12063/api/get?u=${user}&p=pc`);
+                const data = await res.json();
+
+                // پڕکردنەوەی زانیارییەکان لە پەیجی دووەم
+                document.getElementById('disp-name').innerText = user.toUpperCase();
+                document.getElementById('val-lvl').innerText = data.level;
+                document.getElementById('val-kd').innerText = data.kd;
+                document.getElementById('val-wr').innerText = data.winRate;
+                document.getElementById('val-rank').innerText = data.rank;
+
+                // گۆڕینی پەیجەکە بە ئەنیمەیشن
+                document.getElementById('page-input').classList.add('hidden');
+                document.getElementById('page-stats').classList.remove('hidden');
+
+            } catch (e) {
+                alert("OPERATOR NOT FOUND");
+            }
+        }
+    </script>
+</body>
+</html>
